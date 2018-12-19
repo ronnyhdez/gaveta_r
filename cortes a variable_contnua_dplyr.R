@@ -2,3 +2,5 @@
 
 datos %>%
   mutate(variable_continua = cut(variable_continua, breaks  = 5))
+
+# Prueba de usuario
