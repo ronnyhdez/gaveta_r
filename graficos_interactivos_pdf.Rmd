@@ -1,0 +1,61 @@
+---
+title: "Reporte con graficos interactivos a pdf"
+author: "Ronny A. Hernández Mora"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+library(janitor)
+library(ggplot2)
+library(plotly)
+```
+
+En este reporte, ejemplifico una alternativa para crear informes cuya salida
+es necesaria hacia HTML o pdf y tenemos gráficos interactivos creados con
+plotly.
+
+Uno de los problemas radica en que plotly está diseñado para crear gráficos
+interactivos, que funcionan bien cuando nuestro reporte tiene como salida el
+formato HTML.
+
+Sin embargo hay ocasiones, en que las organizaciones  necesitan el reporte
+tanto en HTML y en pdf. Los gráficos de plotly llevados a pdf pueden presentar
+problemas de renderización y probablemente necesitemos de paquetes y procesos
+como:
+
+```{r webshot, eval = FALSE}
+install.packages("webshot")
+library(webshot)
+webshot::install_phantomjs()
+```
+
+Si queremos evitar este proceso, podemos utilizar una de las funciones internas
+del paquete `knitr` para detectar la salida del documento al momento de la
+renderización:
+
+```{r interactividad condicional}
+# Guardamos en objeto formato de salida
+formato_salida <- knitr:::pandoc_to()
+
+# Construccion del grafico con ggplot
+iris_limpio <- iris %>% 
+  clean_names()
+  
+grafico <- iris_limpio %>% 
+  ggplot(aes(x = petal_width, y = sepal_width, color = species)) +
+  geom_point() +
+  geom_line() +
+  theme_light()
+
+if (formato_salida == "html") {
+  ggplotly(grafico)
+} else if (formato_salida == "latex") {
+  grafico
+}
+```
